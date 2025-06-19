@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Isochrone Convex Hull Map</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+  <input id="slider" type="range" min="5" max="60" value="10"/>
+  <span id="label">10분</span>
+  <div id="map" style="height: 100vh; width: 100vw; margin: 0; padding: 0;"></div>
+  <script>
+    const map = L.map('map').setView([37.563641, 126.976296], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    let hullLayer = null;
+
+    function loadHull(timeMin) {
+      const timeSec = timeMin * 60;  // 분 → 초 변환
+      fetch(`/api/convexhull?time=${timeSec}`)
+        .then(res => res.json())
+        .then(geojson => {
+          if(hullLayer) map.removeLayer(hullLayer);
+          hullLayer = L.geoJSON(geojson, {
+  pointToLayer: function (feature, latlng) {
+    return L.circleMarker(latlng, {
+      radius: 6,
+      fillColor: "#b81414",
+      color: "#fff",
+      weight: 1,
+      opacity: 1,
+      fillOpacity: 1
+    });
+  }
+}).addTo(map);
+;
+        });
+    }
+    document.getElementById('slider').oninput = (e) => {
+      let val = e.target.value;
+      document.getElementById('label').textContent = `${val}분`;
+      loadHull(val);  // val은 분 단위
+    };
+    loadHull(document.getElementById('slider').value); // 첫 로딩
+
+  </script>
+</body>
+</html>
