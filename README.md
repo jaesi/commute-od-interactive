@@ -5,4 +5,4 @@
 
 > ### 실행방식
 >1. requirements.txt를 통해 필요 라이브러리들을 설치 <br><br>
->2. CLI로  'uvicorn main:app --reload' 로 시작 <br><br>
+>2. CLI로  'uvicorn main:app --reload' 로 시작
