@@ -59,49 +59,76 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     // 원점 마커(보라색)
-    L.circleMarker([37.563641, 126.976296], {
+    let marker = L.circleMarker([37.563641, 126.976296], {
       radius: 11,
       color: '#8a4cef',
       fillColor: '#8a4cef',
       fillOpacity: 0.94
     }).addTo(map).bindPopup("빅밸류");
 
-    let hullLayer = null;
+    marker.on('mouseover', function (e) {
+      this.openPopup();
+    });
+    marker.on('mouseout', function (e) {
+      this.closePopup();
+    });
+
+    let geoLayer = null;
+
     function loadHull(timeMin) {
-      const timeSec = timeMin * 60;  // 분 → 초 변환
+      const timeSec = timeMin * 60;
       fetch(`/api/convexhull?time=${timeSec}`)
         .then(res => res.json())
         .then(geojson => {
-          if (hullLayer) map.removeLayer(hullLayer);
-          hullLayer = L.geoJSON(geojson, {
-            pointToLayer: function (feature, latlng) {
-              return L.circleMarker(latlng, {
-                radius: 6,
-                fillColor: "#b81414",
-                color: "#fff",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 1
-              });
+          if (geoLayer) map.removeLayer(geoLayer);
+          geoLayer = L.geoJSON(geojson, {
+            style: function(feature) {
+              // hull 폴리곤 스타일
+              if (feature.properties.type === "hull") {
+                return {
+                  color: "#8a4cef",
+                  fillColor: "rgba(138,76,239,0.6)",
+                  fillOpacity: 0.15,
+                  weight: 2
+                };
+              }
             },
-            style: function (feature) {
-              // 포인트가 아니고 폴리곤(=concave/convex hull)일 경우 스타일
-              return {
-                color: "#8a4cef",
-                fillColor: "rgba(138,76,239,0.5)",
-                fillOpacity: 0.18,
-                weight: 2
-              };
+            pointToLayer: function(feature, latlng) {
+              // 정류장 포인트 스타일
+              if (feature.properties.type === "station") {
+                const marker = L.circleMarker(latlng, {
+                  radius: 4,
+                  fillColor: "#8a4cef",
+                  color: "rgba(166,166,166,0)",
+                  weight: 1,
+                  opacity: 1,
+                  fillOpacity: 0.88
+                });
+                // 마우스 호버로 팝업 열기
+                marker.bindPopup(`
+                  <div style="min-width:180px;">
+                    <b style="font-size:15px;color:#8a4cef;">${feature.properties.name || "정류장"}</b><br>
+                    <span style="font-size:12px;">
+                      <b>출근시간(평균):</b> ${(feature.properties.average_time/60).toFixed(0) + "분"}<br>
+                      <b>출근시간(중위):</b> ${(feature.properties.median_time/60).toFixed(0) + "분"}
+                    </span>
+                  </div>
+                `);
+                marker.on('mouseover', function(e) { this.openPopup(); });
+                marker.on('mouseout', function(e) { this.closePopup(); });
+                return marker;
+              }
             }
           }).addTo(map);
         });
     }
+
     document.getElementById('slider').oninput = (e) => {
       let val = e.target.value;
       document.getElementById('slider-label').textContent = `${val}분`;
-      loadHull(val);  // val은 분 단위
+      loadHull(val);
     };
-    loadHull(document.getElementById('slider').value); // 첫 로딩
+    loadHull(document.getElementById('slider').value);
   </script>
 </body>
 </html>
