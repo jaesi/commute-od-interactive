@@ -1,134 +1,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Isochrone Convex Hull Map</title>
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <style>
-    html, body, #map {
-      height: 100%;
-      width: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    #slider-container {
-      position: absolute;
-      left: 50%;
-      bottom: 40px;
-      transform: translateX(-50%);
-      background: rgba(255,255,255,0.97);
-      border-radius: 28px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-      z-index: 1001;
-      display: flex;
-      align-items: center;
-      padding: 16px 32px 12px 32px;
-    }
-    #slider {
-      width: 520px;
-      height: 7px;
-      accent-color: #8a4cef;
-      border-radius: 4px;
-    }
-    #slider-label {
-      font-size: 20px;
-      font-weight: bold;
-      margin-left: 20px;
-      color: #8a4cef;
-      min-width: 56px;
-      text-align: left;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 0 #fff;
-    }
-    @media (max-width: 600px) {
-      #slider-container { width: 98vw; padding: 12px 4vw 10px 4vw;}
-      #slider { width: 75vw; }
-      #slider-label { font-size: 16px; }
-    }
-  </style>
+    <meta charset="utf-8">
+    <title>Commute-OD Interactive Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=8n0ploo7nt"></script>
+    <style>
+        html, body, #map { width: 100%; height: 100%; margin: 0; padding: 0; }
+    </style>
 </head>
 <body>
-  <div id="slider-container">
-    <input id="slider" type="range" min="5" max="120" value="10" step="1">
-    <span id="slider-label">10분</span>
-  </div>
-  <div id="map"></div>
-  <script>
-    const map = L.map('map').setView([37.563641, 126.976296], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-    // 원점 마커(보라색)
-    let marker = L.circleMarker([37.563641, 126.976296], {
-      radius: 11,
-      color: '#8a4cef',
-      fillColor: '#8a4cef',
-      fillOpacity: 0.94
-    }).addTo(map).bindPopup("빅밸류");
-
-    marker.on('mouseover', function (e) {
-      this.openPopup();
-    });
-    marker.on('mouseout', function (e) {
-      this.closePopup();
+    <div id="map"></div>
+    <script>
+    var map = new naver.maps.Map('map', {
+        center: new naver.maps.LatLng(37.563641, 126.976296),
+        zoom: 14
     });
 
-    let geoLayer = null;
+    // 원점 마커 (보라색)
+    var marker = new naver.maps.Marker({
+        position: new naver.maps.LatLng(37.563641, 126.976296),
+        map: map,
+        icon: {
+            content: '<div style="background:#8a4cef;border-radius:50%;width:22px;height:22px;border:3px solid #fff;"></div>',
+            size: new naver.maps.Size(22, 22),
+            anchor: new naver.maps.Point(11, 11)
+        },
+        title: "빅밸류"
+    });
 
-    function loadHull(timeMin) {
-      const timeSec = timeMin * 60;
-      fetch(`/api/convexhull?time=${timeSec}`)
-        .then(res => res.json())
-        .then(geojson => {
-          if (geoLayer) map.removeLayer(geoLayer);
-          geoLayer = L.geoJSON(geojson, {
-            style: function(feature) {
-              // hull 폴리곤 스타일
-              if (feature.properties.type === "hull") {
-                return {
-                  color: "#8a4cef",
-                  fillColor: "rgba(138,76,239,0.6)",
-                  fillOpacity: 0.15,
-                  weight: 2
-                };
-              }
-            },
-            pointToLayer: function(feature, latlng) {
-              // 정류장 포인트 스타일
-              if (feature.properties.type === "station") {
-                const marker = L.circleMarker(latlng, {
-                  radius: 4,
-                  fillColor: "#8a4cef",
-                  color: "rgba(166,166,166,0)",
-                  weight: 1,
-                  opacity: 1,
-                  fillOpacity: 0.88
-                });
-                // 마우스 호버로 팝업 열기
-                marker.bindPopup(`
-                  <div style="min-width:180px;">
-                    <b style="font-size:15px;color:#8a4cef;">${feature.properties.name || "정류장"}</b><br>
-                    <span style="font-size:12px;">
-                      <b>출근시간(평균):</b> ${(feature.properties.average_time/60).toFixed(0) + "분"}<br>
-                      <b>출근시간(중위):</b> ${(feature.properties.median_time/60).toFixed(0) + "분"}
-                    </span>
-                  </div>
-                `);
-                marker.on('mouseover', function(e) { this.openPopup(); });
-                marker.on('mouseout', function(e) { this.closePopup(); });
-                return marker;
-              }
-            }
-          }).addTo(map);
-        });
+    var infoWindow = new naver.maps.InfoWindow({
+        content: `<b style="font-size:12px;color:#8a4cef;">빅밸류</b>`,
+        backgroundColor: "#fff",
+        borderColor: "#8a4cef",
+        borderWidth: 0.5,
+        anchorSkew: true,
+        anchorSize: new naver.maps.Size(10,10)
+    });
+
+    naver.maps.Event.addListener(marker, 'mouseover', function() { infoWindow.open(map, marker); });
+    naver.maps.Event.addListener(marker, 'mouseout', function() { infoWindow.close(); });
+
+    // 컬러 그라데이션 함수 (출근시간(분) 기준)
+    function getColorByTime(t) {
+        t = Math.max(5, Math.min(t, 120));
+        let r, g, b;
+        if (t <= 30) {
+            let ratio = (t - 10) / (30 - 5);
+            r = Math.round(76 + ratio * (255 - 76));
+            g = Math.round(175 + ratio * (221 - 175));
+            b = Math.round(80 + ratio * (51 - 80));
+        } else {
+            let ratio = (t - 30) / (120 - 30);
+            r = Math.round(255 + ratio * (231 - 255));
+            g = Math.round(221 - ratio * 221);
+            b = Math.round(51 + ratio * (60 - 51));
+        }
+        return `rgba(${r},${g},${b},0.4)`;
     }
 
-    document.getElementById('slider').oninput = (e) => {
-      let val = e.target.value;
-      document.getElementById('slider-label').textContent = `${val}분`;
-      loadHull(val);
-    };
-    loadHull(document.getElementById('slider').value);
-  </script>
+    // InfoWindow 인스턴스 (동적으로 재활용, 하나만 열리게)
+    var activeInfo = null;
+
+    fetch('/api/stations')
+      .then(res => res.json())
+      .then(geojson => {
+        geojson.features.forEach(f => {
+          const lat = f.geometry.coordinates[1];
+          const lng = f.geometry.coordinates[0];
+          const t = f.properties.median_time / 60; // 분 단위
+
+          const color = getColorByTime(t);
+
+          // 버퍼 원(300m)
+          let circle = new naver.maps.Circle({
+            map: map,
+            center: new naver.maps.LatLng(lat, lng),
+            radius: 300,
+            fillColor: color,
+            fillOpacity: 0.35,
+            strokeColor: "rgba(255,255,255,0.01)",
+            strokeWeight: 1,
+            clickable: true
+          });
+
+          // InfoWindow
+          var info = new naver.maps.InfoWindow({
+            content: `
+              <b>${f.properties.name || "정류장"}</b><br>
+              <span style="font-size:13px;">
+                출근시간(평균): ${(f.properties.average_time/60).toFixed(1)}분<br>
+                출근시간(중위): ${(f.properties.median_time/60).toFixed(1)}분<br>
+                이동거리(평균): ${(f.properties.average_distance/1000).toFixed(2)}km<br>
+                이동거리(중위): ${(f.properties.median_distance/1000).toFixed(2)}km<br>
+              </span>
+            `,
+            backgroundColor: "#fff"
+          });
+
+          // circle 클릭 시 InfoWindow 열기 (이전 activeInfo 닫기)
+          naver.maps.Event.addListener(circle, 'click', function(e) {
+            if (activeInfo) activeInfo.close();
+            info.open(map, new naver.maps.LatLng(lat, lng));
+            activeInfo = info;
+            // e.stopPropagation(); // map 클릭 이벤트 버블링 방지, 필요시 주석 해제
+          });
+        });
+
+        // 지도 아무 곳 클릭하면 InfoWindow 닫기
+        naver.maps.Event.addListener(map, 'click', function(e) {
+            if (activeInfo) {
+                activeInfo.close();
+                activeInfo = null;
+            }
+        });
+      });
+    </script>
 </body>
 </html>
