@@ -4,12 +4,9 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, text
 import json
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-user = os.getenv("DN_AIRFLOW")
-password = os.getenv("DN_AIRFLOW_PASSWORD")
+user = 'dn_airflow'
+password = 'N2xusA!rf!0w'
 app = FastAPI()
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@10.10.12.181:5432/dataops')
 
