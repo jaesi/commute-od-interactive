@@ -5,44 +5,103 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    html, body, #map {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    #slider-container {
+      position: absolute;
+      left: 50%;
+      bottom: 40px;
+      transform: translateX(-50%);
+      background: rgba(255,255,255,0.97);
+      border-radius: 28px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      padding: 16px 32px 12px 32px;
+    }
+    #slider {
+      width: 520px;
+      height: 7px;
+      accent-color: #8a4cef;
+      border-radius: 4px;
+    }
+    #slider-label {
+      font-size: 20px;
+      font-weight: bold;
+      margin-left: 20px;
+      color: #8a4cef;
+      min-width: 56px;
+      text-align: left;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 0 #fff;
+    }
+    @media (max-width: 600px) {
+      #slider-container { width: 98vw; padding: 12px 4vw 10px 4vw;}
+      #slider { width: 75vw; }
+      #slider-label { font-size: 16px; }
+    }
+  </style>
 </head>
 <body>
-  <input id="slider" type="range" min="5" max="60" value="10"/>
-  <span id="label">10분</span>
-  <div id="map" style="height: 100vh; width: 100vw; margin: 0; padding: 0;"></div>
+  <div id="slider-container">
+    <input id="slider" type="range" min="5" max="120" value="10" step="1">
+    <span id="slider-label">10분</span>
+  </div>
+  <div id="map"></div>
   <script>
     const map = L.map('map').setView([37.563641, 126.976296], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    let hullLayer = null;
 
+    // 원점 마커(보라색)
+    L.circleMarker([37.563641, 126.976296], {
+      radius: 11,
+      color: '#8a4cef',
+      fillColor: '#8a4cef',
+      fillOpacity: 0.94
+    }).addTo(map).bindPopup("빅밸류");
+
+    let hullLayer = null;
     function loadHull(timeMin) {
       const timeSec = timeMin * 60;  // 분 → 초 변환
       fetch(`/api/convexhull?time=${timeSec}`)
         .then(res => res.json())
         .then(geojson => {
-          if(hullLayer) map.removeLayer(hullLayer);
+          if (hullLayer) map.removeLayer(hullLayer);
           hullLayer = L.geoJSON(geojson, {
-  pointToLayer: function (feature, latlng) {
-    return L.circleMarker(latlng, {
-      radius: 6,
-      fillColor: "#b81414",
-      color: "#fff",
-      weight: 1,
-      opacity: 1,
-      fillOpacity: 1
-    });
-  }
-}).addTo(map);
-;
+            pointToLayer: function (feature, latlng) {
+              return L.circleMarker(latlng, {
+                radius: 6,
+                fillColor: "#b81414",
+                color: "#fff",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 1
+              });
+            },
+            style: function (feature) {
+              // 포인트가 아니고 폴리곤(=concave/convex hull)일 경우 스타일
+              return {
+                color: "#8a4cef",
+                fillColor: "rgba(138,76,239,0.5)",
+                fillOpacity: 0.18,
+                weight: 2
+              };
+            }
+          }).addTo(map);
         });
     }
     document.getElementById('slider').oninput = (e) => {
       let val = e.target.value;
-      document.getElementById('label').textContent = `${val}분`;
+      document.getElementById('slider-label').textContent = `${val}분`;
       loadHull(val);  // val은 분 단위
     };
     loadHull(document.getElementById('slider').value); // 첫 로딩
-
   </script>
 </body>
 </html>
