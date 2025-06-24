@@ -3,7 +3,10 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, text
 import json
-import os
+from decimal import Decimal
+
+def to_float_safe(value):
+    return float(value) if isinstance(value, Decimal) else value
 
 user = 'dn_airflow'
 password = 'N2xusA!rf!0w'
@@ -39,7 +42,8 @@ def get_stations():
                    m.morning_commute_average_time,
                    m.morning_commute_median_time,
                    m.morning_commute_average_distance,
-                   m.morning_commute_median_distance
+                   m.morning_commute_median_distance,
+                m.morning_daily_commute_count
             FROM filtered m;
         """)).fetchall()
 
@@ -56,7 +60,8 @@ def get_stations():
                         "average_time": row[2],
                         "median_time": row[3],
                         "average_distance": row[4],
-                        "median_distance": row[5]
+                        "median_distance": row[5],
+                        "commute_count": to_float_safe(row[6])
                     }
                 })
 

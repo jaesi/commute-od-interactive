@@ -66,20 +66,37 @@
     fetch('/api/stations')
       .then(res => res.json())
       .then(geojson => {
-        geojson.features.forEach(f => {
-          const lat = f.geometry.coordinates[1];
-          const lng = f.geometry.coordinates[0];
-          const t = f.properties.median_time / 60; // 분 단위
+          const counts = geojson.features.map(f => Number(f.properties.commute_count) || 0); // 숫자 변환
 
-          const color = getColorByTime(t);
+          const minCount = Math.min(...counts);
+          const maxCount = Math.max(...counts);
 
-          // 버퍼 원(300m)
+          const minRadius = 100;
+          const maxRadius = 400;
+
+          geojson.features.forEach(f => {
+            const lat = f.geometry.coordinates[1];
+            const lng = f.geometry.coordinates[0];
+            const t = f.properties.median_time / 60;
+
+            const color = getColorByTime(t);
+
+            const count = Number(f.properties.commute_count) || 1;
+            const logCount = Math.log(count);
+            const minLog = Math.log(minCount || 1);
+            const maxLog = Math.log(maxCount || 1);
+
+            const ratio = (maxLog === minLog) ? 0.5 : (logCount - minLog) / (maxLog - minLog);
+            const radius = minRadius + ratio * (maxRadius - minRadius);
+
+
+          // 버퍼 원
           let circle = new naver.maps.Circle({
             map: map,
             center: new naver.maps.LatLng(lat, lng),
-            radius: 300,
+            radius: radius,
             fillColor: color,
-            fillOpacity: 0.35,
+            fillOpacity: 0.8,
             strokeColor: "rgba(255,255,255,0.01)",
             strokeWeight: 1,
             clickable: true
@@ -94,6 +111,7 @@
                 출근시간(중위): ${(f.properties.median_time/60).toFixed(1)}분<br>
                 이동거리(평균): ${(f.properties.average_distance/1000).toFixed(2)}km<br>
                 이동거리(중위): ${(f.properties.median_distance/1000).toFixed(2)}km<br>
+                통행량(건/일): ${(f.properties.commute_count).toFixed(1)}건<br>
               </span>
             `,
             backgroundColor: "#fff"
