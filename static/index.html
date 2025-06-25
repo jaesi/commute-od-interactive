@@ -71,7 +71,7 @@
           const minCount = Math.min(...counts);
           const maxCount = Math.max(...counts);
 
-          const minRadius = 100;
+          const minRadius = 40;
           const maxRadius = 400;
 
           geojson.features.forEach(f => {
@@ -88,7 +88,6 @@
 
             const ratio = (maxLog === minLog) ? 0.5 : (logCount - minLog) / (maxLog - minLog);
             const radius = minRadius + ratio * (maxRadius - minRadius);
-
 
           // 버퍼 원
           let circle = new naver.maps.Circle({
