@@ -121,7 +121,6 @@
             if (activeInfo) activeInfo.close();
             info.open(map, new naver.maps.LatLng(lat, lng));
             activeInfo = info;
-            // e.stopPropagation(); // map 클릭 이벤트 버블링 방지, 필요시 주석 해제
           });
         });
 
@@ -187,38 +186,38 @@
         </div>
 
         <!-- 통행량 (크기) -->
-        <div>
-            <div style="font-weight: 500; margin-bottom: 10px;">일일 통행량 (건)</div>
-            <div style="display: flex; align-items: center; justify-content: space-around; text-align: center;">
-                <div>
-                    <div style="
-                        width: 20px; height: 20px;
-                        border-radius: 50%;
-                        background: rgba(150, 150, 150, 0.6);
-                        margin: 0 auto 5px;
-                    "></div>
-                    <span style="font-size: 11px;">적음</span>
-                </div>
-                <div>
-                    <div style="
-                        width: 30px; height: 30px;
-                        border-radius: 50%;
-                        background: rgba(150, 150, 150, 0.6);
-                        margin: 0 auto 5px;
-                    "></div>
-                    <span style="font-size: 11px;">보통</span>
-                </div>
-                <div>
-                    <div style="
-                        width: 40px; height: 40px;
-                        border-radius: 50%;
-                        background: rgba(150, 150, 150, 0.6);
-                        margin: 0 auto 5px;
-                    "></div>
-                    <span style="font-size: 11px;">많음</span>
-                </div>
-            </div>
-        </div>
+<!--        <div>-->
+<!--            <div style="font-weight: 500; margin-bottom: 10px;">일일 통행량 (건)</div>-->
+<!--            <div style="display: flex; align-items: center; justify-content: space-around; text-align: center;">-->
+<!--                <div>-->
+<!--                    <div style="-->
+<!--                        width: 15px; height: 15px;-->
+<!--                        border-radius: 50%;-->
+<!--                        background: rgba(150, 150, 150, 0.6);-->
+<!--                        margin: 0 auto 5px;-->
+<!--                    "></div>-->
+<!--                    <span style="font-size: 11px;">1건</span>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <div style="-->
+<!--                        width: 30px; height: 30px;-->
+<!--                        border-radius: 50%;-->
+<!--                        background: rgba(150, 150, 150, 0.6);-->
+<!--                        margin: 0 auto 5px;-->
+<!--                    "></div>-->
+<!--                    <span style="font-size: 11px;">10건</span>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <div style="-->
+<!--                        width: 40px; height: 40px;-->
+<!--                        border-radius: 50%;-->
+<!--                        background: rgba(150, 150, 150, 0.6);-->
+<!--                        margin: 0 auto 5px;-->
+<!--                    "></div>-->
+<!--                    <span style="font-size: 11px;">50건</span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
     </div>
 </body>
 </html>
