@@ -2,14 +2,17 @@ from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, text
-import json
+import json, os
 from decimal import Decimal
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def to_float_safe(value):
     return float(value) if isinstance(value, Decimal) else value
 
-user = 'dn_airflow'
-password = 'N2xusA!rf!0w'
+user = os.getenv("USER")
+password = os.getenv("PASSWORD")
 app = FastAPI()
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@10.10.12.181:5432/dataops')
 
