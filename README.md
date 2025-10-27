@@ -5,7 +5,5 @@
 >1. requirements.txt를 통해 필요 라이브러리들을 설치 <br>
 >2. .env에 USER, PASSWORD postgresql 접속정보 입력 <br>
 >3. CLI로  'uvicorn main:app --reload' 로 시작
->   * 아래에 등록된 URL 중 하나로 호스팅하셔야 네이버 API 접근 가능합니다 
+>   * 아래에 등록된 URL로 호스팅하셔야 네이버 API 접근 가능합니다 
 >     * http://127.0.0.1:8000 (http:localhost:8000)
->     * http://10.10.12.85:15001
-
