@@ -1,5 +1,6 @@
-from fastapi import FastAPI, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI, Query, Request
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import create_engine, text
 import json, os
@@ -13,14 +14,20 @@ def to_float_safe(value):
 
 user = os.getenv("USER")
 password = os.getenv("PASSWORD")
+ncp_key = os.getenv("NCP_KEY")
 app = FastAPI()
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@10.10.12.181:5432/dataops')
+templates = Jinja2Templates(directory="templates")
+@app.get("/", response_class=HTMLResponse)
+def root(request: Request):
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "ncp_key": ncp_key}
+    )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/")
-def root():
-    return FileResponse("static/index.html")
+@app.get("/api/config")
+def get_config():
+    return {"ncp_key": ncp_key}
 
 @app.get("/api/stations")
 def get_stations():
